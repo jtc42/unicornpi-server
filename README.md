@@ -1,5 +1,5 @@
 # unicornpi-server
-Pi-side codebase for Unicorn HAT remote control.
+Pi-side codebase for [Pimoroni Unicorn HAT](https://shop.pimoroni.com/products/unicorn-hat) remote control.
 
 A blog post detailing the basic functionality can be found [here](https://medium.com/@jtcollins). I suggest reading this first to get an idea of what to expect.
 
