@@ -1,0 +1,33 @@
+# unicornpi-server
+Pi-side codebase for Unicorn HAT remote control.
+
+A blog post detailing the basic functionality can be found [here](https://medium.com/@jtcollins). I suggest reading this first to get an idea of what to expect.
+
+## Requirements
+* [Unicorn HAT library](https://github.com/pimoroni/unicorn-hat)
+* [Python Flask](http://flask.pocoo.org/)
+* [Pyalsaaudio](https://pypi.python.org/pypi/pyalsaaudio)
+
+## Getting started
+* Clone or download the files from here
+* On the Pi, navigate to the download location, and run 'sudo python main.py'
+
+*Note: sudo is required to run the Unicorn HAT*
+
+*I also strongly reccommend using [Linux Screen](https://www.howtoforge.com/linux_screen) to do this, as it allows you to check back on the console output remotely, or after closing the console used to launch.*
+
+* The Flask server should start on the default port (5000)
+* If you have a .local address set up for your Pi, this can be used to access the server
+* Open http://[your Pi IP]:5000 from the browser of any device on the same local network as the Pi to open the web control GUI
+
+### Notes on ALSA graphic equalizer
+* The ALSA integration is still buggy. The idea here is that the HAT will display a graphic EQ for any audio passed to a compatible cards line-in.
+* If a compatible card is detected, it will attempt to set up the graphic EQ, and enable the option in the web UI and API.
+* If no card is detected, the script **should** elegantly ignore this part.
+* The script makes no effort to pass audio back out through the line-out. Most cards have an option to enable pass-through, or monitoring, through the standard settings. This works on some cards I've tried, but not all.
+* If you have any issues with this, feel free to mention it in the issues tracker, but be aware there's a good chance it won't work nicely.
+
+## API
+* I have implemented a basic API that allows sending commands to the server through HTTP-get requests, and returns system status as returned JSON.
+* I've made a document detailing basic functionality, found [here](https://docs.google.com/document/d/1qIMybzcNMx6zFvN5bqxL-kA0C5EpSCOA15KcieoZDWU/edit?usp=sharing).
+* This is primarliy used in the Android app I've made to control the device. This will be added to GitHub soon.
