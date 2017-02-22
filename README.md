@@ -32,4 +32,4 @@ Once everything is set up, you can use either a web browser on your local networ
 ## API
 * I have implemented a basic API that allows sending commands to the server through HTTP-get requests, and returns system status as returned JSON.
 * I've made a document detailing basic functionality, found [here](https://docs.google.com/document/d/1qIMybzcNMx6zFvN5bqxL-kA0C5EpSCOA15KcieoZDWU/edit?usp=sharing).
-* This is primarliy used in the Android app I've made to control the device. This will be added to GitHub soon.
+* This is primarliy used in the Android app I've made to control the device. The app can be found [here.](https://github.com/jtc42/unicornpi-android)
