@@ -3,6 +3,8 @@ Pi-side codebase for [Pimoroni Unicorn HAT](https://shop.pimoroni.com/products/u
 
 A blog post detailing the basic functionality can be found [here](https://medium.com/@jtcollins). I suggest reading this first to get an idea of what to expect.
 
+Once everything is set up, you can use either a web browser on your local network, or the [Android app](https://github.com/jtc42/unicornpi-android) to control the LEDs.
+
 ## Requirements
 * [Unicorn HAT library](https://github.com/pimoroni/unicorn-hat)
 * [Python Flask](http://flask.pocoo.org/)
