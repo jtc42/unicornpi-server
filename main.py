@@ -543,38 +543,52 @@ def set_status(st):
 #Get colour
 @app.route("/api/1.0/homebridge/rgb/color", methods=['GET'])
 def get_colour():
+    rgb_current = beast.clamp.rgb  # Get current RGB from device
+    br_current = global_brightness_get().get("global_brightness_val")  # Get current brightness from device
+    
+    hsv = list(colorsys.rgb_to_hsv(*[k/255.0 for k in rgb_current]))  # Convert current RGB to HSV
+    hsv[-1] = br_current/100.0  # Replace brightness in HSV with brightness from device
 
-    return str(rgb_to_hex(beast.clamp.rgb))
+    rgb_br = list(colorsys.hsv_to_rgb(*hsv))  # Convert RGB accounting for brightness back into RGB
+    rgb_br = [k*255 for k in rgb_br]
+
+    return str(rgb_to_hex(rgb_br))
 
 #Set colour
 @app.route("/api/1.0/homebridge/rgb/color/<string:c>", methods=['GET'])
 def set_colour(c):
 
-    rgb = hex_to_rgb(c)
+    rgb = hex_to_rgb(c)  # Get RGB data from hex input
+    hsv = list(colorsys.rgb_to_hsv(*[k/255.0 for k in rgb]))  # Get HSV data from RGB
     
-    if all(c<=255 for c in rgb): #If all values are within RGB range
-        beast.clamp.rgb = rgb #Update colour
+    # Get brightness target from HSV
+    br_target = hsv[-1]*100
+
+    # Set brightness from target
+    global_brightness_set(br_target)
+    
+    # Calculate full brightness RGB target
+    hsv[-1] = 1.0
+    rgb_target = list(colorsys.hsv_to_rgb(*hsv))
+    rgb_target = [k*255 for k in rgb_target]
+    
+    # Set color from target
+    if all(c<=255 for c in rgb_target): #If all values are within RGB range
+        beast.clamp.rgb = rgb_target #Update colour
 
     return str(rgb_to_hex(beast.clamp.rgb))
  
 #Get brightness
 @app.route("/api/1.0/homebridge/rgb/brightness", methods=['GET'])
 def get_brightness():
-    rgb=beast.clamp.rgb
-    hls = colorsys.rgb_to_hls(rgb[0], rgb[1], rgb[2])
-    
-    return str(2*(hls[1]/255)*100)
+    br_current = global_brightness_get().get("global_brightness_val")
+    return str(br_current)
 
 #Set brightness
 @app.route("/api/1.0/homebridge/rgb/brightness/<int:b>", methods=['GET'])
 def set_brightness(b):
-
     print("This should never actually run. I don't even know why it's here...")
-    b=float(b)/100
-    
-    if b<=100: #If all values are within RGB range
-        beast.safesetbrightness(b) #Update colour
-
+    global_brightness_set(b)
     return str(int(100*beast.core.getbrightness()))
     
     
@@ -582,7 +596,7 @@ def set_brightness(b):
 ### EXIT AND START ROUTINES ### 
  
 def emergency_shutdown():
-	#Stop all running processes
+    #Stop all running processes
     beast.stopall()
     beast.special.alarm.stop()
     beast.special.fade.stop()
