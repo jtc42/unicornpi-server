@@ -6,6 +6,7 @@ A blog post detailing the basic functionality can be found [here](https://medium
 Once everything is set up, you can use either a web browser on your local network, or the [Android app](https://github.com/jtc42/unicornpi-android) to control the LEDs.
 
 ## Requirements
+* Python 2.7
 * [Unicorn HAT library](https://github.com/pimoroni/unicorn-hat)
 * [Python Flask](http://flask.pocoo.org/)
 * [Pyalsaaudio](https://pypi.python.org/pypi/pyalsaaudio)
