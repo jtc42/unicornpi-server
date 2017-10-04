@@ -4,7 +4,6 @@ import time
 
 #CORE FUNCTIONS
 
-#Note: To change the brightnes hard limit, core.py must be modified. This can NOT be modified on the fly.
 import horns.core as core
 
 def quit():
@@ -15,7 +14,6 @@ def quit():
 #CLEANING UP
 core.clear()
 core.setbrightness(0.8)
-
 
 
 #GENERIC_CLASS
