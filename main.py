@@ -1,4 +1,4 @@
-import beast
+from horns import beast
 import os
 import colorsys
 
@@ -8,12 +8,15 @@ import unicornhat as unicorn
 unicorn.rotation(0)
 
 
-###CORE FUNCTIONS###
+### SETUP ###
+CATCHEXCEPTIONS = True
+DEBUG = False
+
+### CORE FUNCTIONS ###
 
 def hex_to_rgb(value):
-    value = value.lstrip('#')
-    length = len(value)
-    return tuple(int(value[i:i + length / 3], 16) for i in range(0, length, length / 3))
+    h = value.lstrip('#')
+    return tuple(int(h[i:i+2], 16) for i in (0, 2 ,4))
 
 def rgb_to_hex(rgb):
     rgb=tuple(rgb)
@@ -208,8 +211,8 @@ from flask import *
 
 #Initial Setup
 app=Flask(__name__)
-app.config['DEBUG'] = False
-message=""
+app.config['DEBUG'] = DEBUG
+message = ""
 
 #Server shutdown procedure
 def shutdown_server():
@@ -318,16 +321,16 @@ def rainbow():
 def alsa():
     # Get the value from the submitted form
     beast.alsa.multiplier = float(request.args.get('sensitivity'))
-    print "Set multiplier"
+    print("Set multiplier")
 
     if request.args.get('alsamode') != "nochange":
         beast.alsa.colormode = int(request.args.get('alsamode'))
-    print "Set mode"
+    print("Set mode")
 
     beast.alsa.volmix.setvolume(int(request.args.get('volume')))
-    print "Set Volume"
+    print("Set Volume")
     beast.alsa.micmix.setvolume(int(request.args.get('gain')))
-    print "Set Gain"
+    print("Set Gain")
 
     if beast.alsa._running==False:
         beast.alsa.start()
@@ -386,7 +389,7 @@ def url_shutdown():
     beast.special.alarm.stop()
     beast.special.fade.stop()
     beast.core.clear()
-    print "Server shutting down..."
+    print("Server shutting down...")
     shutdown_server()
     message="Server now offline"
     return render_template('index.html', message=message, beast=beast, colorsys=colorsys)
@@ -401,13 +404,13 @@ def url_shutdown():
 @app.errorhandler(404)
 def not_found(error):
     return make_response(jsonify({'error': 'Not found'}), 404)
-
+    
 #Catch all exceptions (eg invalid arguments raising exceptions in modules)
-@app.errorhandler(Exception)
-def all_exception_handler(e):
-    app.logger.error('Unhandled Exception: %s', (e))
-    return make_response(jsonify({'error': str(e)}), 500)
-
+if CATCHEXCEPTIONS:
+    @app.errorhandler(Exception)
+    def all_exception_handler(e):
+        app.logger.error('Unhandled Exception: %s', (e))
+        return make_response(jsonify({'error': str(e)}), 500)
     
 #Status
 @app.route("/api/1.0/status/get", methods=['GET'])
@@ -524,18 +527,18 @@ def set_status(st):
     
     if st == 'on': #If turned on by http
         if beast.clamp._running==False: #If RGB lamp specifically not already on
-            print "Homekit turning lamp on..."
+            print("Homekit turning lamp on...")
             beast.clamp.start() #Turn RGB mode on
         status = 1
             
     elif st == 'off':
         if any_running()==True: #If any mode is on
-            print "Homekit turning lamp off..."
+            print("Homekit turning lamp off...")
             beast.stopall() #Turn all modes off
         status = 0
             
     elif st == 'status':
-        print "Homekit getting lamp status..."
+        print("Homekit getting lamp status...")
         status = int(any_running()) #Set status based on any running modes
         
     return str(status)
