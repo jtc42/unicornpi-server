@@ -1,18 +1,18 @@
-import core
+from . import core
+from . import horn
+
 import time
 
-def init(self):
+class Worker(horn.Worker):
 
-    self.rgb=[200,0,255]
-    self.temp=2800 #Partially redundant. Only used in web frontend, and used badly
+    def __init__(self):
+        self.rgb = [200,0,255]
+        self.temp = 2800 #Partially redundant. Only used in web frontend, and used badly
+        horn.Worker.__init__(self)
 
+    def setup(self):
+        pass
 
-def start(self):
-    
-    pass
-
-
-def loop(self):
-
-    core.setall(self.rgb[0],self.rgb[1],self.rgb[2])
-    time.sleep(0.1)
+    def loop(self):
+        core.setall(self.rgb[0],self.rgb[1],self.rgb[2])
+        time.sleep(0.1)

@@ -23,9 +23,9 @@ def setbrightness(br): # Set maximum brightness
         user_brightness = br # Log user-selected brightness to a variable
         unicorn.brightness(br) # Set brightness through unicornhat library
         unicorn.show()
-        print "Brightness capped at ", br
+        print("Brightness capped at ", br)
     else:
-        print "Brightness must be between 0 and 1"
+        print("Brightness must be between 0 and 1")
 
 
 def getbrightness(pc=False): # Returns user-facing brightness as a percentage

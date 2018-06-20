@@ -4,12 +4,12 @@ import numpy as np
 
 import datetime
 import time
-import core
+from . import core
 
 
 #ALARM
 
-class AlarmClass:
+class AlarmWorker:
     # Set this alarms override to initially false    
     AlarmOverride = False
 
@@ -141,7 +141,7 @@ class AlarmClass:
                                     
             time.sleep(1)
 
-alarm=AlarmClass()
+alarm = AlarmWorker()
 
 
 #ALARM START PROCEDURE
@@ -161,7 +161,7 @@ def ChkAlarmRun(self): # If program is already running, alarm takes priority
 
 #FADER
 
-class FadeClass:
+class FadeWorker:
 
     fademins = 2
     fadesecs = fademins*60.0
@@ -220,4 +220,4 @@ class FadeClass:
             elif self.t>self.fadesecs:
                 self.stop()
         
-fade=FadeClass()
+fade=FadeWorker()
