@@ -63,7 +63,8 @@ def global_brightness_set(val):
 def static_clamp_get():
     hex = str(rgb_to_hex(beast.clamp.rgb))
     status = int(beast.clamp._running)
-    return {'static_clamp_hex': hex, 'static_clamp_status': status}
+    return {'static_clamp_hex': hex, 
+            'static_clamp_status': status}
 
 def static_clamp_set(hex, status):
     #Hex
@@ -87,7 +88,9 @@ def dynamic_rainbow_get():
     speed = beast.rainbow.speed
     mode = beast.rainbow.mode
     status = int(beast.rainbow._running)
-    return {'dynamic_rainbow_speed': speed, 'dynamic_rainbow_mode': mode, 'dynamic_rainbow_status': status}
+    return {'dynamic_rainbow_speed': speed, 
+            'dynamic_rainbow_mode': mode, 
+            'dynamic_rainbow_status': status}
 
 def dynamic_rainbow_set(speed, mode, status):
     if speed is not None:
@@ -115,7 +118,12 @@ def dynamic_alsa_get():
         volume = beast.alsa.volmix.getvolume()[0]
         mode = beast.alsa.colormode
         status = int(beast.alsa._running)
-        return {'dynamic_alsa_enabled': enabled, 'dynamic_alsa_sensitivity': sensitivity, 'dynamic_alsa_monitor': monitor, 'dynamic_alsa_volume': volume, 'dynamic_alsa_mode': mode, 'dynamic_alsa_status': status}
+        return {'dynamic_alsa_enabled': enabled, 
+                'dynamic_alsa_sensitivity': sensitivity, 
+                'dynamic_alsa_monitor': monitor, 
+                'dynamic_alsa_volume': volume, 
+                'dynamic_alsa_mode': mode, 
+                'dynamic_alsa_status': status}
     else:
         return {'dynamic_alsa_enabled': enabled}
     
@@ -201,8 +209,6 @@ def special_alarm_set(time, lead, tail, status):
             beast.special.alarm.start()
         elif status==0 and beast.special.alarm._running==True:
             beast.special.alarm.stop()
-    
-
     
 
 ###FLASK###
