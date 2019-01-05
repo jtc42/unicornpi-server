@@ -5,10 +5,12 @@ import time
 
 class Worker(horn.Worker):
 
-    def __init__(self):
+    def __init__(self, parent):
+
         self.rgb = [200,0,255]
         self.temp = 2800 #Partially redundant. Only used in web frontend, and used badly
-        horn.Worker.__init__(self)
+
+        horn.Worker.__init__(self, parent, 'clamp')
 
     def setup(self):
         pass

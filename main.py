@@ -1,6 +1,7 @@
-from horns import beast
+from horns.beast import BeastLamp
 import os
 import colorsys
+from pprint import pprint
 
 import atexit
 
@@ -12,6 +13,9 @@ unicorn.rotation(0)
 CATCHEXCEPTIONS = True
 DEBUG = False
 
+beast = BeastLamp()
+
+
 ### CORE FUNCTIONS ###
 
 def hex_to_rgb(value):
@@ -22,34 +26,17 @@ def rgb_to_hex(rgb):
     rgb=tuple(rgb)
     return '%02x%02x%02x' % rgb
 
-def any_running():
-    return not(all(not(mod._running) for mod in beast.modlist))
+
 
 
 ##Global##
 
 #Status
-def global_status_get():
-    return {'global_status': int(any_running())}
-    
-def global_status_all():
-    out={}
-    out.update(global_status_get())
-    out.update(global_brightness_get())
-    out.update(static_clamp_get())
-    out.update(dynamic_rainbow_get())
-    out.update(dynamic_alsa_get())
-    out.update(special_fade_get())
-    out.update(special_alarm_get())
-    return out
     
 def global_status_clear():
-    beast.stopall()
-    beast.core.clear()
+    beast.stop()
 
 #Brightness (0-100)
-def global_brightness_get():
-    return {'global_brightness_val': int(beast.core.getbrightness()*100)}
 
 def global_brightness_set(val):
     if val is not None:
@@ -60,11 +47,6 @@ def global_brightness_set(val):
 ##Static##
 
 #Clamp
-def static_clamp_get():
-    hex = str(rgb_to_hex(beast.clamp.rgb))
-    status = int(beast.clamp._running)
-    return {'static_clamp_hex': hex, 
-            'static_clamp_status': status}
 
 def static_clamp_set(hex, status):
     #Hex
@@ -84,13 +66,6 @@ def static_clamp_set(hex, status):
 ##Dynamic##
 
 #Rainbow
-def dynamic_rainbow_get():
-    speed = beast.rainbow.speed
-    mode = beast.rainbow.mode
-    status = int(beast.rainbow._running)
-    return {'dynamic_rainbow_speed': speed, 
-            'dynamic_rainbow_mode': mode, 
-            'dynamic_rainbow_status': status}
 
 def dynamic_rainbow_set(speed, mode, status):
     if speed is not None:
@@ -109,23 +84,6 @@ def dynamic_rainbow_set(speed, mode, status):
             beast.rainbow.stop()
     
 #ALSA
-def dynamic_alsa_get():
-    enabled = int(beast.alsa.enabled)
-    
-    if enabled:
-        sensitivity = beast.alsa.multiplier
-        monitor = beast.alsa.micmix.getvolume()[0]
-        volume = beast.alsa.volmix.getvolume()[0]
-        mode = beast.alsa.colormode
-        status = int(beast.alsa._running)
-        return {'dynamic_alsa_enabled': enabled, 
-                'dynamic_alsa_sensitivity': sensitivity, 
-                'dynamic_alsa_monitor': monitor, 
-                'dynamic_alsa_volume': volume, 
-                'dynamic_alsa_mode': mode, 
-                'dynamic_alsa_status': status}
-    else:
-        return {'dynamic_alsa_enabled': enabled}
     
 def dynamic_alsa_set(sensitivity, monitor, volume, mode, status):
     enabled = int(beast.alsa.enabled) #Check card is connected
@@ -158,57 +116,44 @@ def dynamic_alsa_set(sensitivity, monitor, volume, mode, status):
 ##Special##
 
 #Fade
-def special_fade_get():
-    minutes = beast.special.fade.fademins
-    target = beast.special.fade.scalefinal
-    status = int(beast.special.fade._running)
-    return {'special_fade_minutes': minutes, 'special_fade_target': target, 'special_fade_status': status}
  
 def special_fade_set(minutes, target, status):
     if minutes is not None:
         minutes=int(minutes)
-        beast.special.fade.fademins = minutes
+        beast.fade.fademins = minutes
     
     if target is not None:
         target=float(target)
-        beast.special.fade.scalefinal = target
+        beast.fade.scalefinal = target
     
     if status is not None:
         status=int(status)
-        if status==1 and beast.special.fade._running==False:
-            beast.special.fade.start()
-        elif status==0 and beast.special.fade._running==True:
-            beast.special.fade.stop()
+        if status==1 and beast.fade._running==False:
+            beast.fade.start()
+        elif status==0 and beast.fade._running==True:
+            beast.fade.stop()
 
 #Alarm
-def special_alarm_get():
-    time=str(beast.special.alarm.h)+':'+str(beast.special.alarm.m)+':'+str(beast.special.alarm.s)
-    lead = beast.special.alarm.leadmin
-    tail = beast.special.alarm.outmin
-    status = int(beast.special.alarm._running)
-    active = int(beast.special.alarm.SequenceStarted)
-    return {'special_alarm_time': time, 'special_alarm_lead': lead, 'special_alarm_tail': tail, 'special_alarm_status': status, 'special_alarm_active': active}
-    
 def special_alarm_set(time, lead, tail, status):
     if time is not None:
         time = time.split(":") #Split string into list
-        beast.special.alarm.h=int(time[0])
-        beast.special.alarm.m=int(time[1])
+        beast.alarm.h=int(time[0])
+        beast.alarm.m=int(time[1])
     
     if lead is not None:
         lead=int(lead)
-        beast.special.alarm.leadmin=lead
+        beast.alarm.leadmin=lead
     
     if tail is not None:
         tail=int(tail)
-        beast.special.alarm.outmin=tail
+        beast.alarm.outmin=tail
     
     if status is not None:
         status=int(status)
-        if status==1 and beast.special.alarm._running==False:
-            beast.special.alarm.start()
-        elif status==0 and beast.special.alarm._running==True:
-            beast.special.alarm.stop()
+        if status==1 and beast.alarm._running==False:
+            beast.alarm.start()
+        elif status==0 and beast.alarm._running==True:
+            beast.alarm.stop()
     
 
 ###FLASK###
@@ -234,72 +179,88 @@ def not_found(error):
 if CATCHEXCEPTIONS:
     @app.errorhandler(Exception)
     def all_exception_handler(e):
-        app.logger.error('Unhandled Exception: %s', (e))
+        print(e)
         return make_response(jsonify({'error': str(e)}), 500)
-    
+
+
+#New state system
+@app.route("/api/v2/state", methods=['GET', 'POST'])
+def api_state():
+    if request.method == 'POST':
+        payload = request.get_json()
+        print("\nREQUEST:")
+        pprint(payload)
+
+        beast.set_state(payload)
+
+    response = beast.state
+    print("\nRESPONSE:")
+    pprint(response)
+    return jsonify(response)
+
+
 #Status
-@app.route("/api/1.0/status/get", methods=['GET'])
+@app.route("/api/v1/status/get", methods=['GET'])
 def api_status_get():
-    return jsonify(global_status_get())
+    return jsonify(beast.state)
 
-@app.route("/api/1.0/status/all", methods=['GET'])
+@app.route("/api/v1/status/all", methods=['GET'])
 def api_status_all():
-    return jsonify(global_status_all())
+    return jsonify(beast.state)
 
-@app.route("/api/1.0/status/clear", methods=['GET'])
+@app.route("/api/v1/status/clear", methods=['GET'])
 def api_status_clear():
     global_status_clear()
-    return jsonify(global_status_get())
+    return jsonify(beast.state)
     
     
 #Brightness
-@app.route("/api/1.0/brightness/get", methods=['GET'])
+@app.route("/api/v1/brightness/get", methods=['GET'])
 def api_global_brightness_get():
-    return jsonify(global_brightness_get())
+    return jsonify(beast.state)
  
-@app.route("/api/1.0/brightness/set", methods=['GET'])
+@app.route("/api/v1/brightness/set", methods=['GET', 'POST'])
 def api_global_brightness_set():
     val = request.args.get('val')
     global_brightness_set(val)
     
-    return jsonify(global_brightness_get())
- 
+    return jsonify(beast.state)
  
 #Clamp
-@app.route("/api/1.0/clamp/get", methods=['GET'])
+@app.route("/api/v1/clamp/get", methods=['GET'])
 def api_static_clamp_get():
-    return jsonify(static_clamp_get())
+    return jsonify(beast.state)
     
-@app.route("/api/1.0/clamp/set", methods=['GET'])
+@app.route("/api/v1/clamp/set", methods=['GET'])
 def api_static_clamp_set():
     hex = request.args.get('hex')
     status = request.args.get('status')
     static_clamp_set(hex, status)
     
-    return jsonify(static_clamp_get())
+    return jsonify(beast.state)
     
 
 #Rainbow
-@app.route("/api/1.0/rainbow/get", methods=['GET'])
+@app.route("/api/v1/rainbow/get", methods=['GET'])
 def api_dynamic_rainbow_get():
-    return jsonify(dynamic_rainbow_get())
+    return jsonify(beast.state)
     
-@app.route("/api/1.0/rainbow/set", methods=['GET'])
+@app.route("/api/v1/rainbow/set", methods=['GET'])
 def api_dynamic_rainbow_set():
     speed = request.args.get('speed')
     mode = request.args.get('mode')
     status = request.args.get('status')
     dynamic_rainbow_set(speed, mode, status)
     
-    return jsonify(dynamic_rainbow_get())
+    return jsonify(beast.state)
     
     
 #ALSA
-@app.route("/api/1.0/alsa/get", methods=['GET'])
+@app.route("/api/v1/alsa/get", methods=['GET'])
 def api_dynamic_alsa_get():
-    return jsonify(dynamic_alsa_get())
+    return jsonify(beast.state)
     
-@app.route("/api/1.0/alsa/set", methods=['GET'])
+@app.route("/api/v1/alsa/set", methods=['GET'])
 def api_dynamic_alsa_set():
     sensitivity = request.args.get('sensitivity')
     monitor = request.args.get('monitor')
@@ -308,29 +269,29 @@ def api_dynamic_alsa_set():
     status = request.args.get('status')
     dynamic_alsa_set(sensitivity, monitor, volume, mode, status)
     
-    return jsonify(dynamic_alsa_get())
+    return jsonify(beast.state)
     
     
 #Fade
-@app.route("/api/1.0/fade/get", methods=['GET'])
+@app.route("/api/v1/fade/get", methods=['GET'])
 def api_special_fade_get():
-    return jsonify(special_fade_get())
+    return jsonify(beast.state)
     
-@app.route("/api/1.0/fade/set", methods=['GET'])
+@app.route("/api/v1/fade/set", methods=['GET'])
 def api_special_fade_set():
     minutes = request.args.get('minutes')
     target = request.args.get('target')
     status = request.args.get('status')
     special_fade_set(minutes, target, status)
 
-    return jsonify(special_fade_get()) 
+    return jsonify(beast.state)
     
 #Alarm
-@app.route("/api/1.0/alarm/get", methods=['GET'])
+@app.route("/api/v1/alarm/get", methods=['GET'])
 def api_special_alarm_get():
-    return jsonify(special_alarm_get())
+    return jsonify(beast.state)
     
-@app.route("/api/1.0/alarm/set", methods=['GET'])
+@app.route("/api/v1/alarm/set", methods=['GET'])
 def api_special_alarm_set():
     time = request.args.get('time')
     lead = request.args.get('lead')
@@ -338,97 +299,17 @@ def api_special_alarm_set():
     status = request.args.get('status')
     special_alarm_set(time, lead, tail, status)
 
-    return jsonify(special_alarm_get()) 
+    return jsonify(beast.state)
 
-
-    
-###HOMEBRIDGE API### 
-
-##RGB Lamp
-
-#Get/set status considering all modes
-@app.route("/api/1.0/homebridge/rgb/<string:st>", methods=['GET'])
-def set_status(st):
-    
-    if st == 'on': #If turned on by http
-        if beast.clamp._running==False: #If RGB lamp specifically not already on
-            print("Homekit turning lamp on...")
-            beast.clamp.start() #Turn RGB mode on
-        status = 1
-            
-    elif st == 'off':
-        if any_running()==True: #If any mode is on
-            print("Homekit turning lamp off...")
-            beast.stopall() #Turn all modes off
-        status = 0
-            
-    elif st == 'status':
-        print("Homekit getting lamp status...")
-        status = int(any_running()) #Set status based on any running modes
-        
-    return str(status)
-
-#Get colour
-@app.route("/api/1.0/homebridge/rgb/color", methods=['GET'])
-def get_colour():
-    rgb_current = beast.clamp.rgb  # Get current RGB from device
-    br_current = global_brightness_get().get("global_brightness_val")  # Get current brightness from device
-    
-    hsv = list(colorsys.rgb_to_hsv(*[k/255.0 for k in rgb_current]))  # Convert current RGB to HSV
-    hsv[-1] = br_current/100.0  # Replace brightness in HSV with brightness from device
-
-    rgb_br = list(colorsys.hsv_to_rgb(*hsv))  # Convert RGB accounting for brightness back into RGB
-    rgb_br = [k*255 for k in rgb_br]
-
-    return str(rgb_to_hex(rgb_br))
-
-#Set colour
-@app.route("/api/1.0/homebridge/rgb/color/<string:c>", methods=['GET'])
-def set_colour(c):
-
-    rgb = hex_to_rgb(c)  # Get RGB data from hex input
-    hsv = list(colorsys.rgb_to_hsv(*[k/255.0 for k in rgb]))  # Get HSV data from RGB
-    
-    # Get brightness target from HSV
-    br_target = hsv[-1]*100
-
-    # Set brightness from target
-    global_brightness_set(br_target)
-    
-    # Calculate full brightness RGB target
-    hsv[-1] = 1.0
-    rgb_target = list(colorsys.hsv_to_rgb(*hsv))
-    rgb_target = [k*255 for k in rgb_target]
-    
-    # Set color from target
-    if all(c<=255 for c in rgb_target): #If all values are within RGB range
-        beast.clamp.rgb = rgb_target #Update colour
-
-    return str(rgb_to_hex(beast.clamp.rgb))
- 
-#Get brightness
-@app.route("/api/1.0/homebridge/rgb/brightness", methods=['GET'])
-def get_brightness():
-    br_current = global_brightness_get().get("global_brightness_val")
-    return str(br_current)
-
-#Set brightness
-@app.route("/api/1.0/homebridge/rgb/brightness/<int:b>", methods=['GET'])
-def set_brightness(b):
-    print("This should never actually run. I don't even know why it's here...")
-    global_brightness_set(b)
-    return str(int(100*beast.core.getbrightness()))
-    
     
     
 ### EXIT AND START ROUTINES ### 
  
 def emergency_shutdown():
     #Stop all running processes
-    beast.stopall()
-    beast.special.alarm.stop()
-    beast.special.fade.stop()
-    beast.core.clear()
+    beast.alarm.stop()
+    beast.fade.stop()
+    beast.stop()
 
 atexit.register(emergency_shutdown)
     

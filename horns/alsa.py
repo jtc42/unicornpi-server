@@ -10,92 +10,114 @@ import audioop
 import alsaaudio as aa
 from struct import unpack
 
-#Calculate power
-def piff(self, val):
-    return int(2*self.chunk*val/self.sample_rate)
 
-#Calculate levels
+# Calculate power
+def piff(self, val):
+    return int(2 * self.chunk * val / self.sample_rate)
+
+
+# Calculate levels
 def calculate_levels(self, data, chunk, sample_rate):
-    matrix=[0,0,0,0,0,0,0,0]
+    matrix = [0, 0, 0, 0, 0, 0, 0, 0]
+
     # Convert raw data to numpy array
-    data = unpack("%dh"%(len(data)/2),data)
+    data = unpack("%dh" % (len(data) / 2), data)
     data = np.array(data, dtype='h')
+
     # Apply FFT - real data so rfft used
-    fourier=np.fft.rfft(data)
+    fourier = np.fft.rfft(data)
     # Remove last element in array to make it the same size as chunk
-    fourier=np.delete(fourier,len(fourier)-1)
+    fourier = np.delete(fourier, len(fourier) - 1)
     # Find average 'amplitude' for specific frequency ranges in Hz
     power = np.abs(fourier)
-    matrix[0]=float(np.mean(power[piff(self,56):piff(self,156):1]))
-    matrix[1]=float(np.mean(power[piff(self,156):piff(self,313):1]))
-    matrix[2]=float(np.mean(power[piff(self,313):piff(self,625):1]))
-    matrix[3]=float(np.mean(power[piff(self,625):piff(self,1250):1]))
-    matrix[4]=float(np.mean(power[piff(self,1250):piff(self,2500):1]))
-    matrix[5]=float(np.mean(power[piff(self,2500):piff(self,5000):1]))
-    matrix[6]=float(np.mean(power[piff(self,5000):piff(self,10000):1]))
-    matrix[7]=float(np.mean(power[piff(self,10000):piff(self,20000):1]))
+    matrix[0] = float(np.mean(power[piff(self, 56):piff(self, 156):1]))
+    matrix[1] = float(np.mean(power[piff(self, 156):piff(self, 313):1]))
+    matrix[2] = float(np.mean(power[piff(self, 313):piff(self, 625):1]))
+    matrix[3] = float(np.mean(power[piff(self, 625):piff(self, 1250):1]))
+    matrix[4] = float(np.mean(power[piff(self, 1250):piff(self, 2500):1]))
+    matrix[5] = float(np.mean(power[piff(self, 2500):piff(self, 5000):1]))
+    matrix[6] = float(np.mean(power[piff(self, 5000):piff(self, 10000):1]))
+    matrix[7] = float(np.mean(power[piff(self, 10000):piff(self, 20000):1]))
     # Tidy up column values for the LED matrix. Applies weighting, multiplier factor, and should put all values roughly 0<n<8
-    matrix=np.divide(np.multiply(matrix,self.scalefactor),1000000)
+    matrix = np.divide(np.multiply(matrix, self.scalefactor), 1000000)
     # Set floor at 0 and ceiling at 8 for LED matrix. Values are floats so this won't significantly reduce effective "bit-depth"
-    matrix=matrix.clip(0,8)
-    
-    #Remove NaN values from list, replace with zeros
-    matrix=np.nan_to_num(matrix)
-    #Convert numpy array to float list
-    matrix=matrix.tolist()
+    matrix = matrix.clip(0, 8)
+
+    # Remove NaN values from list, replace with zeros
+    matrix = np.nan_to_num(matrix)
+    # Convert numpy array to float list
+    matrix = matrix.tolist()
     return matrix
 
 
 class Worker(horn.Worker):
 
-    def __init__(self):
-        self.colormode=0
-        
-        self.navg=6
+    def __init__(self, parent):
 
-        #INITIAL MATRICES
+        self.colormode = 0
 
-        self.matrix=[0,0,0,0,0,0,0,0]
-        
-        self.multiplier=2 #Depends on "normal" output volume from device
-        self.weighting = [1,2,6,8,16,32,64,64] # Change these according to taste
-        self.scalefactor = [x*self.multiplier for x in self.weighting]
+        self.navg = 6
 
+        # INITIAL MATRICES
+
+        self.matrix = [0, 0, 0, 0, 0, 0, 0, 0]
+
+        self.multiplier = 2  # Depends on "normal" output volume from device
+        self.weighting = [1, 2, 6, 8, 16, 32, 64, 64]  # Change these according to taste
+        self.scalefactor = [x * self.multiplier for x in self.weighting]
 
         # Set up audio
         self.no_channels = 2
         self.sample_rate = 44100
-        self.chunk = 256 # Sample size. Use a multiple of 8
+        self.chunk = 256  # Sample size. Use a multiple of 8
 
-        #Set sound card
-        devname='Device,DEV=0'
-        cardindex=1
+        # Set sound card
+        devname = 'Device,DEV=0'
+        cardindex = 1
 
         try:
-            self.data_in = aa.PCM(aa.PCM_CAPTURE, aa.PCM_NORMAL,devname,cardindex) #DEV=0 device number, 1 card number, both found on 'arecord -l'
+            self.data_in = aa.PCM(aa.PCM_CAPTURE, aa.PCM_NORMAL, devname, cardindex)  # DEV=0 device number, 1 card number, both found on 'arecord -l'
         except:
-            self.enabled=False
+            self.enabled = False
             print("USB ALSA device disconnected. ALSA will be disabled")
             pass
         else:
-            self.enabled=True
+            self.enabled = True
             print("USB ALSA device connected")
             self.data_in.setchannels(self.no_channels)
             self.data_in.setrate(self.sample_rate)
             self.data_in.setformat(aa.PCM_FORMAT_S16_LE)
             self.data_in.setperiodsize(self.chunk)
-            
-            self.volmix=aa.Mixer('Speaker',0,cardindex,devname)
-            self.micmix=aa.Mixer('Mic',0,cardindex,devname)
-        
-        horn.Worker.__init__(self)
 
+            self.volmix = aa.Mixer('Speaker', 0, cardindex, devname)
+            self.micmix = aa.Mixer('Mic', 0, cardindex, devname)
+
+        horn.Worker.__init__(self, parent, 'alsa')
+
+    @property
+    def state(self):
+
+        response = {
+            'dynamic_alsa_enabled': self.enabled,
+            'dynamic_alsa_sensitivity': 0,
+            'dynamic_alsa_monitor': 0,
+            'dynamic_alsa_volume': 0,
+            'dynamic_alsa_mode': 0,
+        }
+
+        if self.enabled:
+            response['dynamic_alsa_sensitivity'] = self.multiplier
+            response['dynamic_alsa_monitor'] = self.micmix.getvolume()[0]
+            response['dynamic_alsa_volume'] = self.volmix.getvolume()[0]
+            mode = self.colormode
+            status = self._running
+
+        return response
 
     def setup(self):
         print("MODE:", self.colormode)
-        fftlist=[0,0,0,0,0,0,0,0]
-        self.matrixav=[[0. for i in range(8)] for j in range(self.navg)]
-
+        fftlist = [0, 0, 0, 0, 0, 0, 0, 0]
+        self.matrixav = [[0. for i in range(8)] for j in range(self.navg)]
 
     def loop(self):
         """
@@ -104,21 +126,21 @@ class Worker(horn.Worker):
         Secondly, if no audio device is present, it should catch most errors.
         The API will prevent commands from being sent to ALSA when it is disabled.
         """
-        
+
         # Read data from device   
         try: #Catch read error
             self.l,self.data = self.data_in.read()
         except Exception as e: 
             print(str(e))
-        
+
         try: #Catch pause error
             self.data_in.pause(True) # Pause capture whilst RPi processes data
         except Exception as e:
             print(str(e))
-        
+
         #Set brightness
         self.scalefactor = [x*self.multiplier for x in self.weighting]
-        
+
         if self.l: #If captured data exists
             try: #Catch frame error
 

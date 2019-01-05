@@ -7,19 +7,22 @@ import time
 import math
 import colorsys as col
 
+
 class Worker(horn.Worker):
 
-    def __init__(self):
-        self.speed=0.2
-        self.mode=0
-        horn.Worker.__init__(self)
+    def __init__(self, parent):
+
+        self.speed = 0.2
+        self.mode = 0
+
+        horn.Worker.__init__(self, parent, 'rainbow')
 
     def setup(self):
         self.i = 0.0
         self.offset = 30
 
     def loop(self):
-        if self.mode==0:
+        if self.mode == 0:
             self.i += self.speed
             for y in range(8):
                 for x in range(8):
