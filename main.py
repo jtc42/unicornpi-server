@@ -10,15 +10,15 @@ from flask import Flask, request, make_response, jsonify
 
 ### SETUP ###
 CATCHEXCEPTIONS = False
-DEBUG = True
+DEBUG = False
 
-beast = UnicornLamp()
+lamp = UnicornLamp()
 
 
 ###FLASK###
 
 #Initial Setup
-app=Flask(__name__)
+app = Flask(__name__)
 app.config['DEBUG'] = DEBUG
 message = ""
 
@@ -48,9 +48,9 @@ def api_state():
         print("\nREQUEST:")
         pprint(payload)
 
-        beast.set_state(payload)
+        lamp.set_state(payload)
 
-    response = beast.state
+    response = lamp.state
     print("\nRESPONSE:")
     pprint(response)
     return jsonify(response)
@@ -60,9 +60,9 @@ def api_state():
  
 def emergency_shutdown():
     #Stop all running processes
-    beast.alarm.stop()
-    beast.fade.stop()
-    beast.stop()
+    lamp.alarm.stop()
+    lamp.fade.stop()
+    lamp.stop()
 
 atexit.register(emergency_shutdown)
     
