@@ -21,9 +21,8 @@ Once everything is set up, you can use either a web browser on your local networ
 
 * The Flask server should start on the default port (5000)
 * If you have a .local address set up for your Pi, this can be used to access the server
-* Open http://[your Pi IP]:5000 from the browser of any device on the same local network as the Pi to open the web control GUI
 
-### Notes on ALSA graphic equalizer
+## Notes on ALSA graphic equalizer
 * **In Python 3, ALSA is entirely untested and likely very broken. I'll try and get round to fixing it soon.**
 * The ALSA integration is still buggy. The idea here is that the HAT will display a graphic EQ for any audio passed to a compatible cards line-in.
 * If a compatible card is detected, it will attempt to set up the graphic EQ, and enable the option in the web UI and API.
