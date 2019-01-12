@@ -7,13 +7,13 @@ Once everything is set up, you can use either a web browser on your local networ
 
 ## Requirements
 * Python >3.5
-* [Unicorn HAT library](https://github.com/pimoroni/unicorn-hat)
+* [Unicorn HAT library](https://github.com/pimoroni/unicorn-hat) or [Mote Phat library](https://github.com/pimoroni/mote-phat)
 * [Python Flask](http://flask.pocoo.org/)
 * [Pyalsaaudio](https://pypi.python.org/pypi/pyalsaaudio) (Optional)
 
 ## Getting started
 * Clone or download the files from here
-* On the Pi, navigate to the download location, and run 'sudo python main.py'
+* On the Pi, navigate to the download location, and run 'sudo python3 main.py'
 
 *Note: sudo is required to run the Unicorn HAT*
 
@@ -32,6 +32,7 @@ Once everything is set up, you can use either a web browser on your local networ
 * If you have any issues with this, feel free to mention it in the issues tracker, but be aware there's a good chance it won't work nicely.
 
 ## API
-* I have implemented a basic API that allows sending commands to the server through HTTP-get requests, and returns system status as returned JSON.
-* I've made a document detailing basic functionality, found [here](https://docs.google.com/document/d/1qIMybzcNMx6zFvN5bqxL-kA0C5EpSCOA15KcieoZDWU/edit?usp=sharing).
+* I have implemented a basic API that allows sending commands to the server through HTTP-POST and GET requests, and returns system status as returned JSON.
+* The functionality present will depend on which modules you've loaded. Once the server is running, GET http://[your Pi IP]:5000/state for a list of parameters. Then, control the lamp by passing any changes you want made as a JSON payload through an HTTP-POST request.
+* **Full documentation will be written up "soon"™️**
 * This is primarliy used in the Android app I've made to control the device. The app can be found [here.](https://github.com/jtc42/unicornpi-android)
