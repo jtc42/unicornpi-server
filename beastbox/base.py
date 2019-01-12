@@ -1,4 +1,3 @@
-from pprint import pprint
 import time
 import logging
 
@@ -131,7 +130,8 @@ class BaseLamp:
             matches[0].start()
 
     def set_state(self, state_dict):
-        pprint(state_dict)
+        logging.debug(state_dict)
+
         # STATUS
         if 'global_status' in state_dict:
             if fuzzybool(state_dict['global_status']):
