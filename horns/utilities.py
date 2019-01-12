@@ -1,41 +1,19 @@
-import unicornhat as unicorn
 import math
 
-# GLOBAL VARIABLES
-# TODO: Move into a config
-user_brightness = 0.0
-
-
-# CORE FUNCTIONS
-
-def clear():
-    unicorn.off()
-
-
-def setall(r, g, b):
-    for i in range(8):
-        for j in range(8):
-            unicorn.set_pixel(i, j, int(r), int(g), int(b))
-    unicorn.show()
-
-
-def setbrightness(br):  # Set maximum brightness
-    global user_brightness
-    if 0 <= br <= 1:
-        user_brightness = br  # Log user-selected brightness to a variable
-        unicorn.brightness(br)  # Set brightness through unicornhat library
-        unicorn.show()
-        print("Brightness capped at ", br)
+def fuzzybool(val):
+    fuzzytrues = ["1", 1, True, "True", "true"]
+    if val in fuzzytrues:
+        return True
     else:
-        print("Brightness must be between 0 and 1")
+        return False
 
+def hex_to_rgb(value):
+    h = value.lstrip('#')
+    return tuple(int(h[i:i+2], 16) for i in (0, 2 ,4))
 
-def getbrightness(pc=False):  # Returns user-facing brightness as a percentage
-    if not pc:
-        return user_brightness  # Return stored user-selected brightness
-    elif pc:
-        return int(user_brightness * 100)  # Return stored user-selected brightness * 100
-
+def rgb_to_hex(rgb):
+    rgb=tuple(rgb)
+    return '%02x%02x%02x' % rgb
 
 def temptorgb(tempin):
 

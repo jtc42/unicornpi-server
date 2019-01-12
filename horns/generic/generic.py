@@ -1,5 +1,3 @@
-from . import core
-from . import special
 from threading import Thread
 
 
@@ -29,22 +27,24 @@ class Worker:
     # GENERIC METHODS
     def stop(self):  # Stop and clear
         self._running = False  # Set terminate command
-        core.clear()  # Initial clear
+        self.parent.clear()  # Initial clear
 
     def start(self):  # Start and draw
-        self.parent.stop()
-        self.parent.ChkAlarmStart()
+        # If not already running
+        if not self._running:
+            self.parent.stop()
+            self.parent.check_alarm_started()
 
-        # Set parent mode
-        self.parent.mode = self.name
+            # Set parent mode
+            self.parent.mode = self.name
 
-        self._running = True  # Set start command
-        thread = Thread(target=self.main)  # Define thread
-        thread.daemon = True  # Stop this thread when main thread closes
-        thread.start()  # Start thread
+            self._running = True  # Set start command
+            thread = Thread(target=self.main)  # Define thread
+            thread.daemon = True  # Stop this thread when main thread closes
+            thread.start()  # Start thread
 
     def main(self):
         self.setup()
         while self._running:  # While terminate command not sent
-            self.parent.ChkAlarmRun()  # Check alarm sequence hasn't started
+            self.parent.check_alarm_running()  # Check alarm sequence hasn't started
             self.loop()

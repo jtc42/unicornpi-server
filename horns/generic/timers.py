@@ -1,11 +1,10 @@
 from threading import Thread
-import unicornhat as unicorn
 import numpy as np
 
 import datetime
 import time
-from . import core
 
+from horns.utilities import temptorgb, fuzzybool
 
 # ALARM
 
@@ -51,12 +50,48 @@ class AlarmWorker:
         # Define initial alarm start time (alarm time minus lead in time)
         self.alarmstart = self.alarmdt - datetime.timedelta(minutes=self.leadmin)
 
+    @property
+    def state(self):
+
+        response = {
+            'special_alarm_status': self._running,
+            'special_alarm_time': str(self.h) + ':' + str(self.m) + ':' + str(self.s),
+            'special_alarm_lead': self.leadmin,
+            'special_alarm_tail': self.outmin,
+            'special_alarm_active': self.SequenceStarted
+        }
+
+        return response
+
+    def set_state(self, state_dict):
+        if 'special_alarm_status' in state_dict:
+            status = fuzzybool(state_dict['special_alarm_status'])
+            if status and not self._running:
+                self.start()
+            elif not status and self._running:
+                self.stop()
+        
+        if 'special_alarm_lead' in state_dict:
+            self.leadmin = int(state_dict['special_alarm_lead'])
+        
+        if 'special_alarm_tail' in state_dict:
+            self.outmin = int(state_dict['special_alarm_tail'])
+        
+        if 'special_alarm_time' in state_dict:
+            # Split string into list
+            time = str(state_dict['special_alarm_time']).split(":")
+            if len(time) >= 2:
+                self.h = int(time[0])
+                self.m = int(time[1])
+            else:
+                logging.warning("Invalid time code.")
+
     def stop(self):  # Stop and clear
         self._running = False  # Set terminate command
         self.AlarmOverride = False
         self.SequenceStarted = False
 
-        core.clear()  # Clear, maybe not necesarry, but safe
+        self.parent.clear()  # Clear, maybe not necesarry, but safe
 
     def start(self):  # Start and draw
         if self._running:
@@ -118,29 +153,29 @@ class AlarmWorker:
                     # Temperature range from 1500K to 3600K
                     alarmtemp = 2100 * self.linearfade + 1500  # Change with linearfade
 
-                    core.setall(
-                        self.linearfade * core.temptorgb(alarmtemp)[0],
-                        self.linearfade * core.temptorgb(alarmtemp)[1],
-                        self.linearfade * core.temptorgb(alarmtemp)[2]
+                    self.parent.set_all(
+                        self.linearfade * temptorgb(alarmtemp)[0],
+                        self.linearfade * temptorgb(alarmtemp)[1],
+                        self.linearfade * temptorgb(alarmtemp)[2]
                     )
-                    unicorn.show()
+                    self.parent.show()
 
                 elif self.secssincealarm <= self.outsec:
 
-                    core.setall(
-                        self.linearfadeout * core.temptorgb(3600)[0],
-                        self.linearfadeout * core.temptorgb(3600)[1],
-                        self.linearfadeout * core.temptorgb(3600)[2]
+                    self.parent.set_all(
+                        self.linearfadeout * temptorgb(3600)[0],
+                        self.linearfadeout * temptorgb(3600)[1],
+                        self.linearfadeout * temptorgb(3600)[2]
                     )
-                    unicorn.show()
+                    self.parent.show()
 
                 # After first changing colours
-                unicorn.brightness(0.8)  # Force brightness to 0.8 without changing user-set brightness
+                self.parent.set_brightness(0.8, sly=True)  # Force brightness to 0.8 without changing user-set brightness
                 self.AlarmBrightnessSet = True  # Tell the system we are using the forced brightness
 
             else:  # If alarm draw is not running for any reason (not time or overridden)
                 if self.AlarmBrightnessSet:  # If we are currently using the forced brightness
-                    unicorn.brightness(core.user_brightness)  # Set brightness back to user-set brightness
+                    self.parent.set_brightness(self.parent.brightness, sly=True)  # Set brightness back to user-set brightness
                     self.AlarmBrightnessSet = False  # Tell the system we're no longer using forced brightness
 
             time.sleep(1)
@@ -160,15 +195,40 @@ class FadeWorker:
         self.fadesecs = self.fademins * 60.0
         self.scalefinal = 0.0  # Target brightness
         self.t = 0  # Initial time? Damnit past-Joel, why do you not comment stuff?
-        self.stopbrightscale = core.user_brightness  # Reset brightness to user-defined when fade stops
+        self.stopbrightscale = self.parent.brightness  # Reset brightness to user-defined when fade stops
+
+    @property
+    def state(self):
+
+        response = {
+            'special_fade_status': self._running,
+            'special_fade_minutes': self.fademins,
+            'special_fade_target': self.scalefinal,
+        }
+
+        return response
+
+    def set_state(self, state_dict):
+        if 'special_fade_status' in state_dict:
+            status = fuzzybool(state_dict['special_fade_status'])
+            if status and not self._running:
+                self.start()
+            elif not status and self._running:
+                self.stop()
+
+        if 'special_fade_minutes' in state_dict:
+            self.fademins = int(state_dict['special_fade_minutes'])
+        
+        if 'special_fade_target' in state_dict:
+            self.scalefinal = float(state_dict['special_fade_target'])
 
     def stop(self):  # Stop and clear
         self._running = False  # Set terminate command
 
-        core.setbrightness(self.stopbrightscale)  # Sets the brightness slider to the fader brightness stopped at, regardless of stop method
+        self.parent.set_brightness(self.stopbrightscale)  # Sets the brightness slider to the fader brightness stopped at, regardless of stop method
 
     def start(self):  # Start and draw
-        self.parent.ChkAlarmStart()
+        self.parent.check_alarm_started()
 
         self.t = 0
 
@@ -186,7 +246,7 @@ class FadeWorker:
                 self.stop()
 
             elif self.t <= self.fadesecs:  # If fade is still running
-                brightinitial = float(core.user_brightness)
+                brightinitial = float(self.parent.brightness)
                 brightfinal = float(self.scalefinal * brightinitial)
 
                 brightness = brightinitial - (self.t / float(self.fadesecs)) * (brightinitial - brightfinal)
@@ -194,7 +254,7 @@ class FadeWorker:
                 # Sets the current "stopping value" for setbrightness
                 self.stopbrightscale = brightness
 
-                unicorn.brightness(brightness)  # Force brightness without changing user-set brightness
+                self.parent.set_brightness(brightness, sly=True)  # Force brightness without changing user-set brightness
 
                 self.t += 1
                 time.sleep(1)

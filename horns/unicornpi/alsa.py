@@ -1,7 +1,4 @@
-import unicornhat as unicorn
-
-from . import core
-from . import horn
+from horns.generic import generic
 
 import numpy as np
 import math
@@ -50,7 +47,7 @@ def calculate_levels(self, data, chunk, sample_rate):
     return matrix
 
 
-class Worker(horn.Worker):
+class Worker(generic.Worker):
 
     def __init__(self, parent):
 
@@ -92,7 +89,7 @@ class Worker(horn.Worker):
             self.volmix = aa.Mixer('Speaker', 0, cardindex, devname)
             self.micmix = aa.Mixer('Mic', 0, cardindex, devname)
 
-        horn.Worker.__init__(self, parent, 'alsa')
+        generic.Worker.__init__(self, parent, 'alsa')
 
     @property
     def state(self):
@@ -114,9 +111,22 @@ class Worker(horn.Worker):
 
         return response
 
+    def set_state(self, state_dict):
+        if 'dynamic_alsa_mode' in state_dict:
+            self.colormode = int(state_dict['dynamic_alsa_mode'])
+            
+        if 'dynamic_alsa_monitor' in state_dict:
+            self.micmix.setvolume(int(state_dict['dynamic_alsa_monitor']))
+
+        if 'dynamic_alsa_volume' in state_dict:
+            self.volmix.setvolume(int(state_dict['dynamic_alsa_volume']))
+
+        if 'dynamic_alsa_sensitivity' in state_dict:
+            self.multiplier = float(state_dict['dynamic_alsa_sensitivity'])
+
     def setup(self):
         print("MODE:", self.colormode)
-        fftlist = [0, 0, 0, 0, 0, 0, 0, 0]
+        self.fftlist = [0, 0, 0, 0, 0, 0, 0, 0]
         self.matrixav = [[0. for i in range(8)] for j in range(self.navg)]
 
     def loop(self):
@@ -182,13 +192,13 @@ class Worker(horn.Worker):
                         
                         if split[1]>1: #Fills
                             for j in range (0,split[1]):
-                                unicorn.set_pixel(7-i, j, int(rscale*255), int(gscale*255), int(bscale*255))
+                                self.parent.set_pixel(7-i, j, int(rscale*255), int(gscale*255), int(bscale*255))
                                 
                         if split[1] < 8: #Remainders
-                            unicorn.set_pixel(7-i, split[1], int(rscale*255*split[0]), int(gscale*255*split[0]), int(bscale*255*split[0]))
+                            self.parent.set_pixel(7-i, split[1], int(rscale*255*split[0]), int(gscale*255*split[0]), int(bscale*255*split[0]))
                             
                         for j in range(split[1]+1,8): #Blanks
-                            unicorn.set_pixel(7-i, j, 0, 0, 0)
+                            self.parent.set_pixel(7-i, j, 0, 0, 0)
                                 
                 elif self.colormode==2: #MODE TWO, OCEAN
                     for i in range (0,8):
@@ -201,13 +211,13 @@ class Worker(horn.Worker):
                         
                         if split[1]>1: #Fills
                             for j in range (0,split[1]):
-                                unicorn.set_pixel(7-i, j, 0, int(255*gscale*0.7), int(bscale*255))
+                                self.parent.set_pixel(7-i, j, 0, int(255*gscale*0.7), int(bscale*255))
                                 
                         if split[1] < 8: #Remainders
-                            unicorn.set_pixel(7-i, split[1], 0, int(255*gscale*split[0]), int(bscale*255*split[0]))
+                            self.parent.set_pixel(7-i, split[1], 0, int(255*gscale*split[0]), int(bscale*255*split[0]))
                             
                         for j in range(split[1]+1,8): #Blanks
-                            unicorn.set_pixel(7-i, j, 0, 0, 0)
+                            self.parent.set_pixel(7-i, j, 0, 0, 0)
                             
                 elif self.colormode==3: #MODE THREE, PINKDROP
                     for i in range (0,8):
@@ -220,13 +230,13 @@ class Worker(horn.Worker):
                         
                         if split[1]>1: #Fills
                             for j in range (0,split[1]):
-                                unicorn.set_pixel(7-i, j, int(rscale*255), 0, int(bscale*255))
+                                self.parent.set_pixel(7-i, j, int(rscale*255), 0, int(bscale*255))
                                 
                         if split[1] < 8: #Remainders
-                            unicorn.set_pixel(7-i, split[1], int(rscale*255*split[0]), 0, int(bscale*255*split[0]))
+                            self.parent.set_pixel(7-i, split[1], int(rscale*255*split[0]), 0, int(bscale*255*split[0]))
                             
                         for j in range(split[1]+1,8): #Blanks
-                            unicorn.set_pixel(7-i, j, 0, 0, 0)
+                            self.parent.set_pixel(7-i, j, 0, 0, 0)
 
                 elif self.colormode==4: #MODE FOUR, RAINBOW
                     for i in range (0,8):
@@ -240,13 +250,13 @@ class Worker(horn.Worker):
                         
                         if split[1]>1: #Fills
                             for j in range (0,split[1]):
-                                unicorn.set_pixel(7-i, j, int(rscale*255), int(gscale*255), int(bscale*255))
+                                self.parent.set_pixel(7-i, j, int(rscale*255), int(gscale*255), int(bscale*255))
                                 
                         if split[1] < 8: #Remainders
-                            unicorn.set_pixel(7-i, split[1], int(rscale*255*split[0]), int(gscale*255*split[0]), int(bscale*255*split[0]))
+                            self.parent.set_pixel(7-i, split[1], int(rscale*255*split[0]), int(gscale*255*split[0]), int(bscale*255*split[0]))
                             
                         for j in range(split[1]+1,8): #Blanks
-                            unicorn.set_pixel(7-i, j, 0, 0, 0)
+                            self.parent.set_pixel(7-i, j, 0, 0, 0)
 
                 elif self.colormode==5: #MODE TWO, CHILLI
                     for i in range (0,8):
@@ -259,13 +269,13 @@ class Worker(horn.Worker):
                         
                         if split[1]>1: #Fills
                             for j in range (0,split[1]):
-                                unicorn.set_pixel(7-i, j, int(255*rscale), int(gscale*255), 0)
+                                self.parent.set_pixel(7-i, j, int(255*rscale), int(gscale*255), 0)
                                 
                         if split[1] < 8: #Remainders
-                            unicorn.set_pixel(7-i, split[1], int(255*rscale*split[0]), int(gscale*255*split[0]), 0)
+                            self.parent.set_pixel(7-i, split[1], int(255*rscale*split[0]), int(gscale*255*split[0]), 0)
                             
                         for j in range(split[1]+1,8): #Blanks
-                            unicorn.set_pixel(7-i, j, 0, 0, 0)
+                            self.parent.set_pixel(7-i, j, 0, 0, 0)
                             
                 elif self.colormode==6: #MODE SIX, ZUNE
                     for i in range (0,8):
@@ -278,13 +288,13 @@ class Worker(horn.Worker):
                         
                         if split[1]>1: #Fills
                             for j in range (0,split[1]):
-                                unicorn.set_pixel(7-i, j, int(240), int(gval), int(bval))
+                                self.parent.set_pixel(7-i, j, int(240), int(gval), int(bval))
                                 
                         if split[1] < 8: #Remainders
-                            unicorn.set_pixel(7-i, split[1], int(240*split[0]), int(gval*split[0]), int(bval*split[0]))
+                            self.parent.set_pixel(7-i, split[1], int(240*split[0]), int(gval*split[0]), int(bval*split[0]))
                             
                         for j in range(split[1]+1,8): #Blanks
-                            unicorn.set_pixel(7-i, j, 0, 0, 0)
+                            self.parent.set_pixel(7-i, j, 0, 0, 0)
  
                 elif self.colormode==7: #MODE SEVEN, ZUNE 2
                     for i in range (0,8):
@@ -302,17 +312,17 @@ class Worker(horn.Worker):
                                 gval=g(j)
                                 bval=b(j)
                                 
-                                unicorn.set_pixel(7-i, j, int(240), int(gval), int(bval))
+                                self.parent.set_pixel(7-i, j, int(240), int(gval), int(bval))
                                 
                         if split[1] < 8: #Remainders
                             #Colours
                             gval=g(split[1])
                             bval=b(split[1])
                             
-                            unicorn.set_pixel(7-i, split[1], int(240*split[0]), int(gval*split[0]), int(bval*split[0]))
+                            self.parent.set_pixel(7-i, split[1], int(240*split[0]), int(gval*split[0]), int(bval*split[0]))
                             
                         for j in range(split[1]+1,8): #Blanks
-                            unicorn.set_pixel(7-i, j, 0, 0, 0)
+                            self.parent.set_pixel(7-i, j, 0, 0, 0)
   
                 else: #MODE ZERO, CLASSIC
                     for i in range (0,8):
@@ -330,19 +340,19 @@ class Worker(horn.Worker):
                                 rscale=r(j)
                                 gscale=g(j)
                                 
-                                unicorn.set_pixel(7-i, j, int(rscale*255), int(gscale*255), 0)
+                                self.parent.set_pixel(7-i, j, int(rscale*255), int(gscale*255), 0)
                                 
                         if split[1] < 8: #Remainders
                             #Colours
                             rscale=r(split[1])
                             gscale=g(split[1])
                             
-                            unicorn.set_pixel(7-i, split[1], int(rscale*255*split[0]), int(gscale*255*split[0]), 0)
+                            self.parent.set_pixel(7-i, split[1], int(rscale*255*split[0]), int(gscale*255*split[0]), 0)
                             
                         for j in range(split[1]+1,8): #Blanks
-                            unicorn.set_pixel(7-i, j, 0, 0, 0)
+                            self.parent.set_pixel(7-i, j, 0, 0, 0)
 
-                unicorn.show()
+                self.parent.show()
 
             except Exception as e:
                 print(str(e))
