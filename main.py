@@ -45,14 +45,19 @@ if CATCHEXCEPTIONS:
 def api_state():
     if request.method == 'POST':
         payload = request.get_json()
-        print("\nREQUEST:")
-        pprint(payload)
+
+        if DEBUG:
+            print("\nREQUEST:")
+            pprint(payload)
 
         lamp.set_state(payload)
 
     response = lamp.state
-    print("\nRESPONSE:")
-    pprint(response)
+
+    if DEBUG:
+        print("\nRESPONSE:")
+        pprint(response)
+
     return jsonify(response)
 
     
