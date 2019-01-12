@@ -4,14 +4,14 @@ import logging
 
 from abc import ABCMeta, abstractmethod
 
-import horns.generic.timers
-import horns.generic.clamp
-import horns.generic.rainbow
+from beastbox.horns.generic import timers
+from beastbox.horns.generic import clamp
+from beastbox.horns.generic import rainbow
 
-from horns.utilities import hex_to_rgb, rgb_to_hex, fuzzybool
+from beastbox.utilities import hex_to_rgb, rgb_to_hex, fuzzybool
 
 
-class Lamp:
+class BaseLamp:
     __metaclass__ = ABCMeta
 
     def __init__(self):
@@ -31,17 +31,17 @@ class Lamp:
         self.timers = []
 
         # Static
-        self.clamp = horns.generic.clamp.Worker(self)
+        self.clamp = clamp.Worker(self)
         self.mods.append(self.clamp)
 
         # Dynamic
-        self.rainbow = horns.generic.rainbow.Worker(self)
+        self.rainbow = rainbow.Worker(self)
         self.mods.append(self.rainbow)
 
         # INSTALL TIMER MODULES
-        self.alarm = horns.generic.timers.AlarmWorker(self)
+        self.alarm = timers.AlarmWorker(self)
         self.timers.append(self.alarm)
-        self.fade = horns.generic.timers.FadeWorker(self)
+        self.fade = timers.FadeWorker(self)
         self.timers.append(self.fade)
 
     # Check if any horns are running

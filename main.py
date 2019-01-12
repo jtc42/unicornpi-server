@@ -1,10 +1,10 @@
-from horns.beast import UnicornLamp
+from beastbox.unicorn import UnicornLamp
 import os
 import colorsys
 from pprint import pprint
 
 import atexit
-from horns.utilities import hex_to_rgb, rgb_to_hex
+from beastbox.utilities import hex_to_rgb, rgb_to_hex
 
 from flask import Flask, request, make_response, jsonify
 

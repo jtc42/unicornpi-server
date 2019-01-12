@@ -1,9 +1,10 @@
-from horns.generic import generic
+from beastbox.horns.generic import generic
 
 import time
 import math
 import colorsys as col
 
+# TODO: A better 1D rainbow based on https://github.com/pimoroni/mote-phat/blob/master/examples/rainbow.py
 
 class Worker(generic.Worker):
 

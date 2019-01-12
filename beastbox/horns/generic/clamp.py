@@ -1,5 +1,5 @@
-from horns.generic import generic
-from horns.utilities import rgb_to_hex, hex_to_rgb
+from beastbox.horns.generic import generic
+from beastbox.utilities import rgb_to_hex, hex_to_rgb
 
 import time
 

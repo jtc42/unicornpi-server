@@ -1,4 +1,4 @@
-from horns.generic import generic
+from beastbox.horns.generic import generic
 
 import numpy as np
 import math
@@ -7,6 +7,7 @@ import audioop
 import alsaaudio as aa
 from struct import unpack
 
+# TODO: Rework into a generic, using self.parent.width, self.parent.height
 
 # Calculate power
 def piff(self, val):

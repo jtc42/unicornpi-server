@@ -1,10 +1,10 @@
 from threading import Thread
 import numpy as np
-
+import logging
 import datetime
 import time
 
-from horns.utilities import temptorgb, fuzzybool
+from beastbox.utilities import temptorgb, fuzzybool
 
 # ALARM
 

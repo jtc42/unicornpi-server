@@ -4,17 +4,16 @@ import logging
 
 import unicornhat as unicorn
 
-from horns.base import Lamp
+from beastbox.base import BaseLamp
+from beastbox.utilities import hex_to_rgb, rgb_to_hex, fuzzybool
 
-import horns.unicornpi.alsa
-
-from horns.utilities import hex_to_rgb, rgb_to_hex, fuzzybool
+from beastbox.horns.unicorn import alsa
 
 
-class UnicornLamp(Lamp):
+class UnicornLamp(BaseLamp):
     def __init__(self):
 
-        Lamp.__init__(self)
+        BaseLamp.__init__(self)
 
         unicorn.set_layout(unicorn.AUTO)
         unicorn.rotation(0)
@@ -23,7 +22,7 @@ class UnicornLamp(Lamp):
         self.width, self.height = unicorn.get_shape()
 
         # Add specific mods
-        self.alsa = horns.unicornpi.alsa.Worker(self)
+        self.alsa = alsa.Worker(self)
         self.mods.append(self.alsa)
 
 
