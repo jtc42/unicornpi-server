@@ -52,9 +52,9 @@ class MoteLamp(BaseLamp):
     def set_pixel(self, x, y, r, g, b):
         r, g, b = self.apply_correction(r, g, b)
         if self.vertical:
-            self.mote.set_pixel(x, y, r, g, b)
+            self.mote.set_pixel(x+1, y, r, g, b)
         else:
-            channel = x//self.pixels
+            channel = x//self.pixels +1
             pixel = x%self.pixels
             self.mote.set_pixel(channel, pixel, r, g, b)
 
