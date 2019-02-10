@@ -11,12 +11,12 @@ from beastbox.utilities import hex_to_rgb, rgb_to_hex, fuzzybool
 class MoteLamp(BaseLamp):
     def __init__(self, channels=4, vertical=False, correction=[1., 1., 1.]):
 
-        BaseLamp.__init__(self)
-
         self.mote = Mote()
 
         for c in channels:
             self.mote.configure_channel(c+1, 16, False)
+
+        BaseLamp.__init__(self)
 
         self.channels = channels
         self.pixels = 16
