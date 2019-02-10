@@ -38,7 +38,7 @@ class MoteLamp(BaseLamp):
 
     # Apply correction
     def apply_correction(self, r, g, b):
-        return [a*b for a, b in zip(self.correction, [r, g, b])]
+        return [int(a*b) for a, b in zip(self.correction, [r, g, b])]
 
     # Clear all pixels
     def clear(self):
