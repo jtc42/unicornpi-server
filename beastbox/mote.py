@@ -9,7 +9,7 @@ from beastbox.utilities import hex_to_rgb, rgb_to_hex, fuzzybool
 
 
 class MoteLamp(BaseLamp):
-    def __init__(self, channels=4, vertical=False, correction=[1., 1., 1.]):
+    def __init__(self, channels=4, correction=[1., 1., 1.]):
 
         self.mote = Mote()
 
@@ -26,15 +26,9 @@ class MoteLamp(BaseLamp):
         for channel in range(self.channels):
             self.mote.configure_channel(channel+1, self.pixels, False)
 
-        self.vertical = vertical
+        self.width = self.channels
+        self.height = self.pixels
 
-        if self.vertical:
-            self.width = self.channels
-            self.height = self.pixels
-
-        else:
-            self.width = self.channels * self.pixels
-            self.height = 1
 
     # Apply correction
     def apply_correction(self, r, g, b):
@@ -51,12 +45,7 @@ class MoteLamp(BaseLamp):
     # Set a single pixel
     def set_pixel(self, x, y, r, g, b):
         r, g, b = self.apply_correction(r, g, b)
-        if self.vertical:
-            self.mote.set_pixel(x+1, y, r, g, b)
-        else:
-            channel = x//self.pixels +1
-            pixel = x%self.pixels
-            self.mote.set_pixel(channel, pixel, r, g, b)
+        self.mote.set_pixel(x+1, y, r, g, b)
 
     # Set all pixels to RGB
     def set_all(self, r, g, b):
