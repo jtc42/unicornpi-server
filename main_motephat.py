@@ -1,4 +1,4 @@
-from beastbox.mote import MoteLamp
+from beastbox.motephat import MotePhatLamp
 import os
 import colorsys
 from pprint import pprint
@@ -12,7 +12,7 @@ from flask import Flask, request, make_response, jsonify
 CATCHEXCEPTIONS = False
 DEBUG = False
 
-lamp = MoteLamp(correction=[1., 1., 1.])
+lamp = MotePhatLamp(correction=[1., .4, .6])
 
 
 ###FLASK###

@@ -2,21 +2,16 @@ from pprint import pprint
 import time
 import logging
 
-from mote import Mote
+import motephat as mote
 
 from beastbox.base import BaseLamp
 from beastbox.utilities import hex_to_rgb, rgb_to_hex, fuzzybool
 
 
-class MoteLamp(BaseLamp):
-    def __init__(self, channels=4, vertical=False, correction=[1., 1., 1.]):
+class MotePhatLamp(BaseLamp):
+    def __init__(self, channels=4, vertical=False, correction=[1., .4, .6]):
 
         BaseLamp.__init__(self)
-
-        mote = Mote()
-
-        for c in channels:
-            mote.configure_channel(c+1, 16, False)
 
         self.channels = channels
         self.pixels = 16
