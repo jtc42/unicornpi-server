@@ -13,7 +13,7 @@ class MoteLamp(BaseLamp):
 
         self.mote = Mote()
 
-        for c in channels:
+        for c in range(channels):
             self.mote.configure_channel(c+1, 16, False)
 
         BaseLamp.__init__(self)
