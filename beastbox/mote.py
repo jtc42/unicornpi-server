@@ -13,10 +13,10 @@ class MoteLamp(BaseLamp):
 
         BaseLamp.__init__(self)
 
-        mote = Mote()
+        self.mote = Mote()
 
         for c in channels:
-            mote.configure_channel(c+1, 16, False)
+            self.mote.configure_channel(c+1, 16, False)
 
         self.channels = channels
         self.pixels = 16
@@ -24,7 +24,7 @@ class MoteLamp(BaseLamp):
         self.correction = correction
 
         for channel in range(self.channels):
-            mote.configure_channel(channel+1, self.pixels, False)
+            self.mote.configure_channel(channel+1, self.pixels, False)
 
         self.vertical = vertical
 
@@ -42,34 +42,34 @@ class MoteLamp(BaseLamp):
 
     # Clear all pixels
     def clear(self):
-        mote.clear()
-        mote.show()
+        self.mote.clear()
+        self.mote.show()
 
     def show(self):
-        mote.show()
+        self.mote.show()
 
     # Set a single pixel
     def set_pixel(self, x, y, r, g, b):
         r, g, b = self.apply_correction(r, g, b)
         if self.vertical:
-            mote.set_pixel(x, y, r, g, b)
+            self.mote.set_pixel(x, y, r, g, b)
         else:
             channel = x//self.pixels
             pixel = x%self.pixels
-            mote.set_pixel(channel, pixel, r, g, b)
+            self.mote.set_pixel(channel, pixel, r, g, b)
 
     # Set all pixels to RGB
     def set_all(self, r, g, b):
         r, g, b = self.apply_correction(r, g, b)
-        mote.set_all(r, g, b)
+        self.mote.set_all(r, g, b)
         self.show()
 
     # Set maximum global brightness
     def set_brightness(self, val, sly=False):
         if 0 <= val <= 1:
-            mote.set_brightness(val)  # Set brightness through unicornhat library
+            self.mote.set_brightness(val)  # Set brightness through unicornhat library
             if not sly:  # If we're not setting the brightness silently/on-the-sly
                 self.brightness = val  # Log user-selected brightness to a variable
-                mote.show()
+                self.mote.show()
         else:
             print("Brightness must be between 0 and 1")
