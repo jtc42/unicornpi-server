@@ -12,7 +12,7 @@ from flask import Flask, request, make_response, jsonify
 CATCHEXCEPTIONS = False
 DEBUG = False
 
-lamp = MoteLamp(correction=[1., .7, .5])
+lamp = MoteLamp(correction=[2.2, 0.2, 1.2])
 
 
 ###FLASK###
