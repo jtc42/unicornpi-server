@@ -48,11 +48,7 @@ class BaseLamp:
 
     # Apply correction
     def apply_correction(self, r, g, b):
-        print("Applying correction to:")
-        print(r, g, b)
         corrected = [apply_contrast(val, contrast) for val, contrast in zip([r, g, b], self.correction)]
-        print("Corrected:")
-        print(corrected)
         return corrected
 
 
