@@ -7,7 +7,7 @@ from beastbox.horns.generic import timers
 from beastbox.horns.generic import clamp
 from beastbox.horns.generic import rainbow
 
-from beastbox.utilities import hex_to_rgb, rgb_to_hex, fuzzybool, apply_contrast
+from beastbox.utilities import hex_to_rgb, rgb_to_hex, fuzzybool, apply_correction
 
 
 class BaseLamp:
@@ -48,7 +48,7 @@ class BaseLamp:
 
     # Apply correction
     def apply_correction(self, r, g, b):
-        corrected = [apply_contrast(val, contrast) for val, contrast in zip([r, g, b], self.correction)]
+        corrected = [apply_correction(val, contrast) for val, contrast in zip([r, g, b], self.correction)]
         return corrected
 
 
