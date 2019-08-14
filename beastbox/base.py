@@ -7,13 +7,13 @@ from beastbox.horns.generic import timers
 from beastbox.horns.generic import clamp
 from beastbox.horns.generic import rainbow
 
-from beastbox.utilities import hex_to_rgb, rgb_to_hex, fuzzybool
+from beastbox.utilities import hex_to_rgb, rgb_to_hex, fuzzybool, apply_contrast
 
 
 class BaseLamp:
     __metaclass__ = ABCMeta
 
-    def __init__(self):
+    def __init__(self, correction=[1., 1., 1.]):
         # Set initially zero dimensions
         self.width, self.height = (0, 0)
 
@@ -21,6 +21,9 @@ class BaseLamp:
         self.clear()
         self.brightness = 0.0
         self.set_brightness(0.8)
+
+        # Colour correction
+        self.correction = correction
 
         # Default mode
         self.mode = 'clamp'
@@ -42,6 +45,16 @@ class BaseLamp:
         self.timers.append(self.alarm)
         self.fade = timers.FadeWorker(self)
         self.timers.append(self.fade)
+
+    # Apply correction
+    def apply_correction(self, r, g, b):
+        print("Applying correction to:")
+        print(r, g, b)
+        corrected = [apply_contrast(val, contrast) for val, contrast in zip([r, g, b], self.correction)]
+        print("Corrected:")
+        print(corrected)
+        return corrected
+
 
     # Check if any horns are running
     @property

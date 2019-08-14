@@ -12,7 +12,7 @@ from flask import Flask, request, make_response, jsonify
 CATCHEXCEPTIONS = False
 DEBUG = False
 
-lamp = UnicornLamp()
+lamp = UnicornLamp(correction=[1., 1.8, 2.2])
 
 
 ###FLASK###

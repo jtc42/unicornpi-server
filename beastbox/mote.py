@@ -21,18 +21,12 @@ class MoteLamp(BaseLamp):
         self.channels = channels
         self.pixels = 16
 
-        self.correction = correction
-
         for channel in range(self.channels):
             self.mote.configure_channel(channel+1, self.pixels, False)
 
         self.width = self.channels
         self.height = self.pixels
 
-
-    # Apply correction
-    def apply_correction(self, r, g, b):
-        return [int(a*b) for a, b in zip(self.correction, [r, g, b])]
 
     # Clear all pixels
     def clear(self):

@@ -11,9 +11,9 @@ from beastbox.horns.unicorn import alsa
 
 
 class UnicornLamp(BaseLamp):
-    def __init__(self):
+    def __init__(self, correction=[1., 1., 1.]):
 
-        BaseLamp.__init__(self)
+        BaseLamp.__init__(self, correction=correction)
 
         unicorn.set_layout(unicorn.AUTO)
         unicorn.rotation(0)
@@ -34,8 +34,15 @@ class UnicornLamp(BaseLamp):
         unicorn.show()
 
     # Set a single pixel
-    def set_pixel(self, *args, **kwargs):
-        unicorn.set_pixel(*args, **kwargs)
+    def set_pixel(self, x, y, r, g, b):
+        r, g, b = self.apply_correction(r, g, b)
+        unicorn.set_pixel(x, y, r, g, b)
+
+    # Set all pixels
+    def set_all(self, r, g, b):
+        r, g, b = self.apply_correction(r, g, b)
+        unicorn.set_all(r, g, b)
+        unicorn.show()
 
     # Set maximum global brightness
     def set_brightness(self, val, sly=False):
