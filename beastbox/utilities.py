@@ -74,7 +74,7 @@ def temptorgb(tempin):
 
 # Correction function
 def c_func(x, n):
-    return x**n
+    return x**(1/n)
 
 
 # Apply contrast function to a colour value
