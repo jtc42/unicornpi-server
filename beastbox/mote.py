@@ -43,16 +43,16 @@ class MoteLamp(BaseLamp):
 
     # Set all pixels to RGB
     def set_all(self, r, g, b):
+        self.color = (r, g, b)
         r, g, b = self.apply_correction(r, g, b)
         self.mote.set_all(r, g, b)
-        self.show()
 
     # Set maximum global brightness
-    def set_brightness(self, val, sly=False):
-        if 0 <= val <= 1:
-            self.mote.set_brightness(val)  # Set brightness through unicornhat library
-            if not sly:  # If we're not setting the brightness silently/on-the-sly
-                self.brightness = val  # Log user-selected brightness to a variable
-                self.mote.show()
+    def set_brightness(self, val):
+        val = int(val)
+        if 0 <= val <= 255:
+            self.mote.set_brightness(val/255)  # Set brightness through unicornhat library
+            self.brightness = val  # Log user-selected brightness to a variable
+            self.mote.show()
         else:
-            print("Brightness must be between 0 and 1")
+            logging.error("Brightness must be between 0 and 255")

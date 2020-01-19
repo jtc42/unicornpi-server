@@ -1,11 +1,8 @@
 import time
 import logging
+from pprint import pprint
 
 from abc import ABCMeta, abstractmethod
-
-from beastbox.horns.generic import timers
-from beastbox.horns.generic import clamp
-from beastbox.horns.generic import rainbow
 
 from beastbox.utilities import hex_to_rgb, rgb_to_hex, fuzzybool, apply_correction
 
@@ -17,54 +14,25 @@ class BaseLamp:
         # Set initially zero dimensions
         self.width, self.height = (0, 0)
 
+        self.correction = correction
+
+        self.brightness = 255
+        self.state = False
+        self.color = (255, 0, 255)
+
         # Clean start
         self.clear()
-        self.brightness = 0.0
-        self.set_brightness(0.8)
+        self.set_brightness(self.brightness)
+        self.set_state(self.state)
+        self.set_color(self.color)
 
         # Colour correction
         self.correction = correction
-
-        # Default mode
-        self.mode = 'clamp'
-
-        # INSTALL MODULES
-        self.mods = []
-        self.timers = []
-
-        # Static
-        self.clamp = clamp.Worker(self)
-        self.mods.append(self.clamp)
-
-        # Dynamic
-        self.rainbow = rainbow.Worker(self)
-        self.mods.append(self.rainbow)
-
-        # INSTALL TIMER MODULES
-        self.alarm = timers.AlarmWorker(self)
-        self.timers.append(self.alarm)
-        self.fade = timers.FadeWorker(self)
-        self.timers.append(self.fade)
 
     # Apply correction
     def apply_correction(self, r, g, b):
         corrected = [apply_correction(val, contrast) for val, contrast in zip([r, g, b], self.correction)]
         return corrected
-
-
-    # Check if any horns are running
-    @property
-    def running(self):
-        return not(all(not(mod._running) for mod in self.mods))
-
-    # Define StopAll function
-    def stop(self):
-        print("Stopping all")
-        for mod in self.mods:
-            mod.stop()
-        if self.alarm.SequenceStarted:  # If alarm sequence has started:
-            self.alarm.AlarmOverride = True  # Also kill alarm (without unsetting)
-        self.clear()
 
     # Clear all pixels
     @abstractmethod
@@ -87,85 +55,47 @@ class BaseLamp:
                 self.set_pixel(x, y, int(r), int(g), int(b))
         self.show()
 
-    # Set maximum global brightness
+    # Set brightness (0-255)
     @abstractmethod
-    def set_brightness(self, val, sly=False):
+    def set_brightness(self, val):
         pass
 
-    # Set brightness while considering running fades (part of horns.special)
-    def safe_set_brightness(self, val):
-        if self.fade._running:
-            self.fade.stop()
-        self.set_brightness(val)
+    # Set on/off
+    def set_state(self, state):
+        state = fuzzybool(state)
+        if state:
+            self.set_all(*self.color)
+            self.show()
+        else:
+            self.clear()
+            self.show()
+        self.state = bool(state)
 
-    # ALARM START PROCEDURE
-    def check_alarm_started(self):  # If program is not yet running, it takes priority
-        if self.alarm.SequenceStarted:  # If alarm sequence has already started
-            self.alarm.AlarmOverride = True  # Override alarm
+    # Set RGB color
+    def set_color(self, color):
+        color = [int(c) for c in color]
+        if not len(color) == 3:
+            logging.error("color must be a 3-element list (r, g, b)")
+        else:
+            self.set_all(*color)
+            self.color = color
+        
+        # If lamp is on, update
+        if self.state:
+            self.show()
 
-            self.set_brightness(self.brightness, sly=True)  # Set brightness back to user-set brightness
-            self.alarm.AlarmBrightnessSet = False  # Tell the system we're no longer using forced brightness
-
-    def check_alarm_running(self):  # If program is already running, alarm takes priority
-        if self.alarm.SequenceStarted and not self.alarm.AlarmOverride:
-            self.stop()
-
-    @property
-    def state(self):
-        response = {
-            'global_status': self.running,
-            'global_mode': self.mode,
-            'global_brightness_val': int(self.brightness * 100),
+    def get_representation(self):
+        return {
+            "state": self.state,
+            "color": self.color,
+            "brightness": self.brightness
         }
 
-        for timer in self.timers:
-            response.update(timer.state)
-
-        for mod in self.mods:
-            response.update(mod.state)
-
-        return response
-    
-    def start_mod_from_name(self, name):
-        matches = [mod for mod in self.mods if mod.name == name]
-
-        if len(matches) == 0:
-            logging.warning("No matching mods found.")
-
-        elif len(matches) != 1:
-            logging.warning("Multiple matching mods found.")
-
-        else:
-            matches[0].start()
-
-    def set_state(self, state_dict):
-        logging.debug(state_dict)
-
-        # STATUS
-        if 'global_status' in state_dict:
-            if fuzzybool(state_dict['global_status']):
-                self.start_mod_from_name(self.mode)
-            else:
-                self.stop()
-
-        # MODE
-        if 'global_mode' in state_dict:
-            # If name matches a loaded mod
-            if state_dict['global_mode'] in [mod.name for mod in self.mods]:
-                self.mode = state_dict['global_mode']
-
-                # If already running, switch to the new mode
-                if self.running:
-                    self.start_mod_from_name(self.mode)
-
-        # BRIGHTNESS
-        if 'global_brightness_val' in state_dict:
-            brightness = int(state_dict['global_brightness_val'])/100.0
-            self.safe_set_brightness(brightness)
-        
-        # MOD STATES
-        for mod in self.mods:
-            mod.set_state(state_dict)
-
-        for timer in self.timers:
-            timer.set_state(state_dict)
+    def set_representation(self, rep):
+        pprint(rep)
+        if "state" in rep:
+            self.set_state(rep.get("state"))
+        if "brightness" in rep:
+            self.set_brightness(rep.get("brightness"))
+        if "color" in rep:
+            self.set_color(rep.get("color"))

@@ -1,13 +1,9 @@
-from pprint import pprint
 import time
 import logging
 
 import unicornhat as unicorn
 
 from beastbox.base import BaseLamp
-from beastbox.utilities import hex_to_rgb, rgb_to_hex, fuzzybool
-
-from beastbox.horns.unicorn import alsa
 
 
 class UnicornLamp(BaseLamp):
@@ -20,11 +16,6 @@ class UnicornLamp(BaseLamp):
 
         # Get LED matrix dimensions
         self.width, self.height = unicorn.get_shape()
-
-        # Add specific mods
-        self.alsa = alsa.Worker(self)
-        self.mods.append(self.alsa)
-
 
     # Clear all pixels
     def clear(self):
@@ -40,16 +31,16 @@ class UnicornLamp(BaseLamp):
 
     # Set all pixels
     def set_all(self, r, g, b):
+        self.color = (r, g, b)
         r, g, b = self.apply_correction(r, g, b)
         unicorn.set_all(r, g, b)
-        unicorn.show()
 
-    # Set maximum global brightness
-    def set_brightness(self, val, sly=False):
-        if 0 <= val <= 1:
-            unicorn.brightness(val)  # Set brightness through unicornhat library
-            if not sly:  # If we're not setting the brightness silently/on-the-sly
-                self.brightness = val  # Log user-selected brightness to a variable
-                unicorn.show()
+    # Set brightness
+    def set_brightness(self, val):
+        val = int(val)
+        if 0 <= val <= 255:
+            unicorn.brightness(val/255)  # Set brightness through unicornhat library
+            self.brightness = val  # Log user-selected brightness to a variable
+            unicorn.show()
         else:
-            print("Brightness must be between 0 and 1")
+            logging.error("Brightness must be between 0 and 255")
