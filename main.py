@@ -10,13 +10,13 @@ DEVICE = 'UNICORN_HAT'
 
 if DEVICE == 'UNICORN_HAT':
     from beastbox.unicorn import UnicornLamp
-    lamp = UnicornLamp(correction=[0.7, 1.6, 1.0])
+    lamp = UnicornLamp(correction=[1.4, 0.75, 1.0])
 elif DEVICE == "MOTE_PHAT":
     from beastbox.motephat import MotePhatLamp
     lamp = MotePhatLamp(correction=[1., .4, .6])
 elif DEVICE == "MOTE_USB":
     from beastbox.mote import MoteLamp
-    lamp = MoteLamp(correction=[2.2, 0.2, 1.2])
+    lamp = MoteLamp(correction=[1.8, 0.8, 1.2])
 
 app = Flask(__name__)
 
