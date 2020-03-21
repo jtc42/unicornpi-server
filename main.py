@@ -10,7 +10,7 @@ DEVICE = 'UNICORN_HAT'
 
 if DEVICE == 'UNICORN_HAT':
     from beastbox.unicorn import UnicornLamp
-    lamp = UnicornLamp(correction=[1.4, 0.75, 1.0])
+    lamp = UnicornLamp(correction=[1., 0.8, 1.0])
 elif DEVICE == "MOTE_PHAT":
     from beastbox.motephat import MotePhatLamp
     lamp = MotePhatLamp(correction=[1., .4, .6])
