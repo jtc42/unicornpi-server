@@ -5,12 +5,13 @@ import logging
 import atexit
 
 from flask import Flask, request, make_response, jsonify
+from flask_cors import CORS
 
 DEVICE = 'UNICORN_HAT'
 
 if DEVICE == 'UNICORN_HAT':
     from beastbox.unicorn import UnicornLamp
-    lamp = UnicornLamp(correction=[1.4, 0.75, 1.0])
+    lamp = UnicornLamp(correction=[1., 0.8, 1.0])
 elif DEVICE == "MOTE_PHAT":
     from beastbox.motephat import MotePhatLamp
     lamp = MotePhatLamp(correction=[1., .4, .6])
@@ -19,6 +20,7 @@ elif DEVICE == "MOTE_USB":
     lamp = MoteLamp(correction=[1.8, 0.8, 1.2])
 
 app = Flask(__name__)
+CORS(app)
 
 # Catch all exceptions (eg invalid arguments raising exceptions in modules)
 @app.errorhandler(Exception)
