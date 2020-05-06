@@ -15,6 +15,12 @@ Once everything is set up, you can use either a web browser on your local networ
 * Clone or download the files from here
 * On the Pi, navigate to the download location, and run 'sudo python3 main.py'
 
+### Install service
+
+* `sudo cp unicornpi-server.service /lib/systemd/system/`
+* `sudo systemctl enable unicornpi-server.service`
+* `sudo systemctl start unicornpi-server.service`
+
 *Note: sudo is required to run the Unicorn HAT*
 
 *I also strongly reccommend using [Linux Screen](https://www.howtoforge.com/linux_screen) to do this, as it allows you to check back on the console output remotely, or after closing the console used to launch.*
