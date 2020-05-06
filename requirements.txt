@@ -1,5 +1,6 @@
 pyalsaaudio
 unicornhat
+mote
 numpy
 flask
 Flask-Cors
