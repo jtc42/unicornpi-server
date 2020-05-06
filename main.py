@@ -17,7 +17,7 @@ elif DEVICE == "MOTE_PHAT":
     lamp = MotePhatLamp(correction=[1., .4, .6])
 elif DEVICE == "MOTE_USB":
     from beastbox.mote import MoteLamp
-    lamp = MoteLamp(correction=[1.8, 0.8, 1.2])
+    lamp = MoteLamp(correction=[1., 0.5, .8])
 
 app = Flask(__name__)
 CORS(app)
